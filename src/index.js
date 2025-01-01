@@ -81,12 +81,12 @@ server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
 client.distube = new DisTube(client, {
     plugins: [new YtDlpPlugin()],
     emitNewSongOnly: true,
-    customFilters: {}, 
-    nsfw: true, 
-    emitAddSongWhenCreatingQueue: true, 
-    emitAddListWhenCreatingQueue: true, 
-    ffmpegPath: process.env.FFMPEG_PATH, 
+    customFilters: {}, // Optional, for custom audio filters
+    nsfw: true, // Optional, allow NSFW audio
+    emitAddSongWhenCreatingQueue: true, // Emit 'addSong' event
+    emitAddListWhenCreatingQueue: true, // Emit 'addList' event
 });
+
 
 
 // Load event files dynamically
