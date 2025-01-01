@@ -1,9 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
+const express = require('express');
 const { Client, GatewayIntentBits } = require('discord.js');
 const { DisTube } = require('distube');
 const { YtDlpPlugin } = require('@distube/yt-dlp');
+const axios = require('axios');
+const qs = require('querystring');
 const http = require('http');
 
 // Initialize Discord client
@@ -16,11 +19,50 @@ const client = new Client({
     ],
 });
 
-// Lightweight server for Heroku
-const server = http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Project Rat Bot is running!');
+// Initialize Express app
+const app = express();
+
+// Handle OAuth2 callback
+app.get('/oauth/callback', async (req, res) => {
+    const code = req.query.code;
+
+    if (!code) {
+        return res.status(400).send('No code provided!');
+    }
+
+    try {
+        const response = await axios.post(
+            'https://discord.com/api/oauth2/token',
+            qs.stringify({
+                client_id: process.env.CLIENT_ID,
+                client_secret: process.env.CLIENT_SECRET,
+                grant_type: 'authorization_code',
+                code,
+                redirect_uri: 'https://project-rat-bot-842d5dfdaeb6.herokuapp.com/oauth/callback',
+            }),
+            {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            }
+        );
+
+        const { access_token, token_type, scope } = response.data;
+
+        console.log('Access Token:', access_token);
+        console.log('Token Type:', token_type);
+        console.log('Scope:', scope);
+
+        res.send('Bot successfully authorized!');
+
+    } catch (error) {
+        console.error('Error exchanging code for token:', error.message);
+        res.status(500).send('Failed to authorize bot.');
+    }
 });
+
+// Lightweight server for Heroku (integrated with Express)
+const server = http.createServer(app);
 
 // Listen on the Heroku-assigned port or default to 3000
 const PORT = process.env.PORT || 3000;
