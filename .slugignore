@@ -1,4 +1,6 @@
-node_modules/
-.git/
-tests/
-logs/
+node_modules/ # This will be reinstalled during the Heroku build
+*.log         # Exclude any log files
+.env          # No need to include environment variables
+src/tests/    # If you have test files or folders
+README.md     # No need to deploy documentation
+Aptfile       # Only required during build, not runtime
