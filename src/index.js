@@ -4,7 +4,6 @@ require('dotenv').config();
 const { Client, GatewayIntentBits } = require('discord.js');
 const { DisTube } = require('distube');
 const { YtDlpPlugin } = require('@distube/yt-dlp');
-const { fetchTwitchToken, fetchChannelId, isStreamLive, twitchConfig } = require('./commands/twitch');
 const http = require('http');
 
 // Initialize Discord client
@@ -64,14 +63,6 @@ const skipCommand = require('./commands/skip');
 const logChatCommand = require('./commands/logchat');
 const getLogsCommand = require('./commands/getlogs');
 const randomLogCommand = require('./commands/randomlog');
-const listChannelsCommand = require('./commands/listchannels');
-
-// Twitch Integration Setup
-(async () => {
-    await fetchTwitchToken();
-    await fetchChannelId();
-    console.log('Twitch integration is set up.');
-})();
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.content.startsWith('.')) return;
@@ -95,14 +86,6 @@ client.on('messageCreate', async (message) => {
         case 'skip':
             skipCommand.execute(message);
             break;
-        case 'streamstatus':
-            const isLive = await isStreamLive();
-            if (isLive) {
-                message.channel.send(`${twitchConfig.username} is LIVE on Twitch! Watch here: https://twitch.tv/${twitchConfig.username}`);
-            } else {
-                message.channel.send(`${twitchConfig.username} is currently offline.`);
-            }
-            break;
         case 'logchat':
             logChatCommand.execute(message, args);
             break;
@@ -112,28 +95,11 @@ client.on('messageCreate', async (message) => {
         case 'randomlog':
             randomLogCommand.execute(message);
             break;
-        case 'listchannels':
-            listChannelsCommand.execute(message);
-            break;
         default:
             message.reply(`Unknown command: \`${command}\``);
             break;
     }
 });
-
-// Periodic Twitch Stream Check
-setInterval(async () => {
-    const discordChannel = client.channels.cache.get(process.env.DISCORD_CHANNEL_ID);
-    if (!discordChannel) {
-        console.error('Discord channel not found. Check DISCORD_CHANNEL_ID in .env.');
-        return;
-    }
-
-    const isLive = await isStreamLive();
-    if (isLive) {
-        discordChannel.send(`🎥 Hey everyone! ${twitchConfig.username} is now LIVE on Twitch! Check it out: https://twitch.tv/${twitchConfig.username}`);
-    }
-}, 5 * 60 * 1000); // Check every 5 minutes
 
 // Log in the bot
 client.login(process.env.DISCORD_TOKEN);
