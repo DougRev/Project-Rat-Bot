@@ -66,10 +66,6 @@ app.get('/oauth/callback', async (req, res) => {
     }
 });
 
-// Ensure the FFmpeg path is set
-process.env.FFMPEG_PATH = execSync('which ffmpeg').toString().trim();
-console.log('FFmpeg Path:', process.env.FFMPEG_PATH);
-
 // Lightweight server for Heroku (integrated with Express)
 const server = http.createServer(app);
 
