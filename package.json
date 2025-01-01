@@ -1,17 +1,19 @@
 {
   "name": "project-rat-bot",
   "version": "1.0.0",
+  "description": "A Discord bot with music and Spotify integration",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/index.js",
     "heroku-postbuild": "npm prune --production"
-
   },
-  "keywords": [],
-  "author": "",
+  "engines": {
+    "node": "18.x"
+  },
+  "keywords": ["discord", "bot", "music", "spotify"],
+  "author": "Your Name",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "@discordjs/opus": "^0.9.0",
     "@discordjs/voice": "^0.18.0",
