@@ -8,6 +8,7 @@ const { YtDlpPlugin } = require('@distube/yt-dlp');
 const axios = require('axios');
 const qs = require('querystring');
 const http = require('http');
+const { execSync } = require('child_process');
 
 // Initialize Discord client
 const client = new Client({
@@ -59,12 +60,15 @@ app.get('/oauth/callback', async (req, res) => {
         console.log('Scope:', scope);
 
         res.send('Bot successfully authorized!');
-
     } catch (error) {
         console.error('Error exchanging code for token:', error.message);
         res.status(500).send('Failed to authorize bot.');
     }
 });
+
+// Ensure the FFmpeg path is set
+process.env.FFMPEG_PATH = execSync('which ffmpeg').toString().trim();
+console.log('FFmpeg Path:', process.env.FFMPEG_PATH);
 
 // Lightweight server for Heroku (integrated with Express)
 const server = http.createServer(app);
@@ -81,6 +85,7 @@ client.distube = new DisTube(client, {
     nsfw: true, // Optional, allow NSFW audio
     emitAddSongWhenCreatingQueue: true, // Emit 'addSong' event
     emitAddListWhenCreatingQueue: true, // Emit 'addList' event
+    ffmpeg: { path: process.env.FFMPEG_PATH }, // Add the FFmpeg path here
 });
 
 // Load event files dynamically
@@ -106,11 +111,11 @@ const playCommand = require('./commands/play');
 const stopCommand = require('./commands/stop');
 const queueCommand = require('./commands/queue');
 const skipCommand = require('./commands/skip');
-
 const logChatCommand = require('./commands/logchat');
 const getLogsCommand = require('./commands/getlogs');
 const randomLogCommand = require('./commands/randomlog');
 
+// Command handler
 client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.content.startsWith('.')) return;
 
