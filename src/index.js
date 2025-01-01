@@ -22,6 +22,11 @@ const client = new Client({
 // Initialize Express app
 const app = express();
 
+// Define a route for the root path
+app.get('/', (req, res) => {
+    res.send('Welcome to Project Rat Bot!');
+});
+
 // Handle OAuth2 callback
 app.get('/oauth/callback', async (req, res) => {
     const code = req.query.code;
