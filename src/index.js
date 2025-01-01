@@ -4,6 +4,7 @@ require('dotenv').config();
 const { Client, GatewayIntentBits } = require('discord.js');
 const { DisTube } = require('distube');
 const { YtDlpPlugin } = require('@distube/yt-dlp');
+const { fetchTwitchToken, fetchChannelId, isStreamLive, twitchConfig } = require('./commands/twitch');
 
 // Initialize Discord client
 const client = new Client({
@@ -49,14 +50,28 @@ const stopCommand = require('./commands/stop');
 const queueCommand = require('./commands/queue');
 const skipCommand = require('./commands/skip');
 
-// NEW: import the customPlay command
-const customPlayCommand = require('./commands/customPlay');
+const logChatCommand = require('./commands/logchat');
+const getLogsCommand = require('./commands/getlogs');
+const randomLogCommand = require('./commands/randomlog');
+
+
+// Twitch Integration Setup
+(async () => {
+    await fetchTwitchToken();
+    await fetchChannelId();
+    console.log('Twitch integration is set up.');
+})();
+
+
 
 client.on('messageCreate', async (message) => {
-    if (message.author.bot || !message.content.startsWith('!')) return;
+    if (message.author.bot || !message.content.startsWith('.')) return;
 
     const args = message.content.slice(1).trim().split(/ +/);
     const command = args.shift().toLowerCase();
+
+    // Ignore `!endlog` from being treated as a command
+    if (command === 'endlog') return;
 
     switch (command) {
         case 'play':
@@ -71,15 +86,43 @@ client.on('messageCreate', async (message) => {
         case 'skip':
             skipCommand.execute(message);
             break;
-        // NEW: your custom play command
-        case 'customplay':
-            customPlayCommand.execute(message, args);
+        case 'streamstatus':
+            const isLive = await isStreamLive();
+            if (isLive) {
+                message.channel.send(`${twitchConfig.username} is LIVE on Twitch! Watch here: https://twitch.tv/${twitchConfig.username}`);
+            } else {
+                message.channel.send(`${twitchConfig.username} is currently offline.`);
+            }
+            break;
+        case 'logchat':
+            logChatCommand.execute(message, args);
+            break;
+        case 'getlogs':
+            getLogsCommand.execute(message, args);
+            break;
+        case 'randomlog':
+            randomLogCommand.execute(message);
             break;
         default:
             message.reply(`Unknown command: \`${command}\``);
             break;
     }
 });
+;
+
+// Periodic Twitch Stream Check
+setInterval(async () => {
+    const discordChannel = client.channels.cache.get(process.env.DISCORD_CHANNEL_ID);
+    if (!discordChannel) {
+        console.error('Discord channel not found. Check DISCORD_CHANNEL_ID in .env.');
+        return;
+    }
+
+    const isLive = await isStreamLive();
+    if (isLive) {
+        discordChannel.send(`🎥 Hey everyone! ${twitchConfig.username} is now LIVE on Twitch! Check it out: https://twitch.tv/${twitchConfig.username}`);
+    }
+}, 5 * 60 * 1000); // Check every 5 minutes
 
 // Log in the bot
 client.login(process.env.DISCORD_TOKEN);
