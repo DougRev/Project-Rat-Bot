@@ -5,6 +5,7 @@ const { Client, GatewayIntentBits } = require('discord.js');
 const { DisTube } = require('distube');
 const { YtDlpPlugin } = require('@distube/yt-dlp');
 const { fetchTwitchToken, fetchChannelId, isStreamLive, twitchConfig } = require('./commands/twitch');
+const http = require('http');
 
 // Initialize Discord client
 const client = new Client({
@@ -15,6 +16,16 @@ const client = new Client({
         GatewayIntentBits.MessageContent,
     ],
 });
+
+// Lightweight server for Heroku
+const server = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Project Rat Bot is running!');
+});
+
+// Listen on the Heroku-assigned port or default to 3000
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
 
 // Initialize DisTube with plugins and options
 client.distube = new DisTube(client, {
@@ -53,7 +64,7 @@ const skipCommand = require('./commands/skip');
 const logChatCommand = require('./commands/logchat');
 const getLogsCommand = require('./commands/getlogs');
 const randomLogCommand = require('./commands/randomlog');
-
+const listChannelsCommand = require('./commands/listchannels');
 
 // Twitch Integration Setup
 (async () => {
@@ -61,8 +72,6 @@ const randomLogCommand = require('./commands/randomlog');
     await fetchChannelId();
     console.log('Twitch integration is set up.');
 })();
-
-
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.content.startsWith('.')) return;
@@ -103,12 +112,14 @@ client.on('messageCreate', async (message) => {
         case 'randomlog':
             randomLogCommand.execute(message);
             break;
+        case 'listchannels':
+            listChannelsCommand.execute(message);
+            break;
         default:
             message.reply(`Unknown command: \`${command}\``);
             break;
     }
 });
-;
 
 // Periodic Twitch Stream Check
 setInterval(async () => {

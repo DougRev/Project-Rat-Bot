@@ -11,9 +11,9 @@ module.exports = {
         const description = args.join(' ');
 
         // Request the user to paste the chat log
-        message.reply('Please paste the chat log (line-by-line). Send `!endlog` when you are finished.');
+        message.reply('Please paste the chat log (line-by-line). Send `.endlog` when you are finished.');
 
-        const filter = (msg) => msg.author.id === message.author.id && msg.content !== '!endlog';
+        const filter = (msg) => msg.author.id === message.author.id && msg.content !== '.endlog';
         const collector = message.channel.createMessageCollector({ filter, time: 60000 });
 
         let chatLog = [];
@@ -60,7 +60,7 @@ module.exports = {
             }
         });
 
-        const endFilter = (msg) => msg.author.id === message.author.id && msg.content === '!endlog';
+        const endFilter = (msg) => msg.author.id === message.author.id && msg.content === '.endlog';
         const endCollector = message.channel.createMessageCollector({ filter: endFilter, max: 1, time: 60000 });
         endCollector.on('collect', () => {
             collector.stop('user_end');
