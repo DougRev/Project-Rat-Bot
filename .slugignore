@@ -1,4 +1,5 @@
-node_modules/ 
-*.log         
-.env          
-src/tests/    
+*.log
+*.md
+src/tests/
+node_modules/
+.env
